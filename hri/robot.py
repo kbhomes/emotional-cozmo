@@ -1,4 +1,5 @@
 from . import drive
+from . import perception
 
 import threading
 import sys
@@ -14,6 +15,10 @@ class Robot(object):
         self.drive_system = drive.DriveSystem(self)
         self.drive_system.on('active-drive-changed', self.on_active_drive_changed)
 
+        self.perception_system = perception.PerceptionSystem(self)
+        self.perception_system.on('stimulus-detected', self.on_stimulus_detected)
+        self.perception_system.on('stimulus-disappeared', self.on_stimulus_disappeared)
+
         # Set up the update loop
         self.update_event = threading.Event()
         self.update_thread = threading.Thread(target=self.robot_thread)
@@ -21,6 +26,12 @@ class Robot(object):
 
     def on_active_drive_changed(self, previous_drive, new_drive):
         print('Drive changed from `{}` to `{}'.format(previous_drive.name, new_drive.name))
+
+    def on_stimulus_detected(self, stimulus):
+        print('Stimulus detected: {} (was not detected for {}s)'.format(stimulus.id, stimulus.disappearance_duration))
+
+    def on_stimulus_disappeared(self, stimulus):
+        print('Stimulus disappeared: {} (was detected for {}s)'.format(stimulus.id, stimulus.detection_duration))
 
     def stop(self):
         self.update_event.set()
@@ -33,3 +44,4 @@ class Robot(object):
 
             # Update the systems
             self.drive_system.update(elapsed)
+            self.perception_system.update(elapsed)

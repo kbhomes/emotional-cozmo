@@ -1,4 +1,5 @@
-import releaser
-import sensor
-import stimulus
-import system
+from . import releaser
+from . import sensor
+from . import stimulus
+
+from .system import PerceptionSystem
