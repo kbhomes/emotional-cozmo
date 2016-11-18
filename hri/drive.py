@@ -1,3 +1,5 @@
+from . import system
+
 class Drive(object):
     """ Represents a homeostatic drive or motivation for the robot """
 
@@ -18,4 +20,14 @@ class Drive(object):
 
     def update(self, elapsed: float):
         # TODO: Implement properly, calculating the drive
+        pass
+
+
+class DriveSystem(system.System):
+    """ System that manages the state of the robot's drives """
+    
+    def __init__(self, robot):
+        super().__init__(robot)
+
+    def update(self, elapsed):
         pass

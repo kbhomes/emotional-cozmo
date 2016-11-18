@@ -1,0 +1,2 @@
+class Vision(object):
+    pass
