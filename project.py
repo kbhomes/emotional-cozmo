@@ -6,12 +6,13 @@ class RobotView(object):
     
     def __init__(self):
         self.palette = [
-            ('title', DARK_RED + ',bold', LIGHT_GRAY),
-            ('section_title', LIGHT_GREEN + ',bold', DARK_GRAY),
+            ('title', DARK_RED + ', bold', LIGHT_GRAY),
+            ('section_title', LIGHT_GREEN + ', bold', DARK_GRAY),
             
             ('line', LIGHT_GRAY, DARK_GRAY),
 
             ('active', LIGHT_GREEN, DARK_GRAY),
+            ('not-active', WHITE, DARK_GRAY),
             ('detected', LIGHT_GREEN, DARK_GRAY),
             ('undetected', DARK_RED, DARK_GRAY),
 
@@ -22,7 +23,7 @@ class RobotView(object):
             ('bg', WHITE, DARK_GRAY)
         ]
 
-        self.header = AttrMap(Text(('title', 'Cozmo'), align=CENTER), 'title')
+        self.header = AttrMap(Text(('title', '\nCozmo\n'), align=CENTER), 'title')
 
         self.drives_name_pile = Pile([])
         self.drives_level_pile = Pile([])
@@ -31,16 +32,25 @@ class RobotView(object):
 
         self.stimuli_id_pile = Pile([])
         self.stimuli_duration_pile = Pile([])
-        self.stimuli_columns = Columns([
-            self.stimuli_id_pile,
-            self.stimuli_duration_pile
-        ])
+        self.stimuli_columns = Columns([self.stimuli_id_pile, self.stimuli_duration_pile])
         self.stimuli_frame = Frame(self.stimuli_columns, Text(('section_title', '\nStimuli\n'), align=CENTER))
 
+        self.releasers_id_pile = Pile([])
+        self.releasers_level_pile = Pile([])
+        self.releasers_columns = Columns([self.releasers_id_pile, self.releasers_level_pile])
+        self.releasers_frame = Frame(self.releasers_columns, Text(('section_title', '\nReleasers\n'), align=CENTER))
+
+        self.left_pile = Pile([
+            ('weight', 1, self.drives_frame), 
+            ('fixed', 1, AttrWrap(SolidFill(u'\u2500'), 'line')), 
+            ('weight', 2, self.releasers_frame)
+        ])
+        self.right_pile = Pile([self.stimuli_frame])
+
         self.body = Columns([
-            self.drives_frame,
+            self.left_pile,
             ('fixed', 1, AttrWrap(SolidFill(u'\u2502'), 'line')), 
-            self.stimuli_frame
+            self.right_pile
         ])
         self.body = AttrMap(self.body, 'bg')
 
@@ -82,18 +92,37 @@ class RobotView(object):
 
             if stim.detected:
                 id_markup = [('active', '[*] ' + stim.id)]
-                duration_markup = [('detected', ' {:6.1f}s'.format(stim.detection_duration))]
+                duration_markup = [('detected', ' {:8.1f}s'.format(stim.detection_duration))]
             else:
                 id_markup = ['    ' + stim.id]
-                duration_markup = [('undetected', '({:6.1f}s)'.format(stim.disappearance_duration))]
+                duration_markup = [('undetected', '({:8.1f}s)'.format(stim.disappearance_duration))]
 
             self.stimuli_id_pile.contents.append((Text(id_markup), ('pack', None)))
             self.stimuli_duration_pile.contents.append((Text(duration_markup), ('pack', None)))
+
+    def update_releasers(self):
+        self.releasers_id_pile.contents.clear()
+        self.releasers_level_pile.contents.clear()
+
+        for rel in robot.perception_system.releasers:
+            id_markup = []
+            level_markup = []
+
+            if robot.perception_system.active_releaser is rel:
+                id_markup = [('active', '[*] ' + rel.name)]
+                level_markup = [('active', ' {:6.1f} / {:3d}'.format(rel.activation_level, rel.activation_threshold))]
+            else:
+                id_markup = ['    ' + rel.name]
+                level_markup = [('not-active', ' {:6.1f} / {:3d}'.format(rel.activation_level, rel.activation_threshold))]
+
+            self.releasers_id_pile.contents.append((Text(id_markup), ('pack', None)))
+            self.releasers_level_pile.contents.append((Text(level_markup), ('pack', None)))
             
 
     def update_all(self, loop, data):
         self.update_drives()
         self.update_stimuli()
+        self.update_releasers()
 
         if loop:
             loop.set_alarm_in(0.5, self.update_all)

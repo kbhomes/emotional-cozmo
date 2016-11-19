@@ -13,10 +13,6 @@ class Vision(object):
         self.test_target = random.randint(-100, 100)
         self.test_current = 0
 
-        self.test_face = stimulus.FaceStimulus(self.perception_system)
-        self.test_face.id = 'face-1'
-        self.perception_system.stimuli[self.test_face.id] = self.test_face
-
     def update(self, elapsed):
         self.test_update(elapsed)
 
@@ -34,6 +30,6 @@ class Vision(object):
 
         # Generate events based upon this smooth randomness
         if self.test_current > 0:
-            self.test_face.detect()
+            self.perception_system.stimuli['face-1'].detect()
         else:
-            self.test_face.disappear()
+            self.perception_system.stimuli['face-1'].disappear()

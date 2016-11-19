@@ -41,9 +41,10 @@ class RestDrive(Drive):
    
     def __init__(self, drive_system):
         super().__init__(drive_system)
+        self.drive_level = self.drive_min
 
     def update(self, elapsed):
-        self.drive_level = min(self.drive_max, self.drive_level + (2 * elapsed))
+        self.drive_level = min(self.drive_max, self.drive_level + (0.5 * elapsed))
         pass
 
 
@@ -53,9 +54,10 @@ class SoloDrive(Drive):
    
     def __init__(self, drive_system):
         super().__init__(drive_system)
+        self.drive_level = -10
 
     def update(self, elapsed):
-        self.drive_level = min(self.drive_max, self.drive_level + (1 * elapsed))
+        self.drive_level = min(self.drive_max, self.drive_level + (0.5 * elapsed))
 
 
 class SocialDrive(Drive):
@@ -64,9 +66,10 @@ class SocialDrive(Drive):
    
     def __init__(self, drive_system):
         super().__init__(drive_system)
+        self.drive_level = 0
 
     def update(self, elapsed):
-        self.drive_level = min(self.drive_max, self.drive_level + (3 * elapsed))
+        self.drive_level = min(self.drive_max, self.drive_level + (0.5 * elapsed))
 
 
 class DriveSystem(system.System):
@@ -80,7 +83,7 @@ class DriveSystem(system.System):
         self.social_drive = SocialDrive(self)
         self.drives = [self.rest_drive, self.solo_drive, self.social_drive]
 
-        self.active_drive = self.solo_drive
+        self.active_drive = self.social_drive
 
     def update(self, elapsed):
         # Update the various drives

@@ -4,11 +4,12 @@ from timeit import default_timer as timeit
 
 class Stimulus(object):
     """ Represents a perceivable stimulus """
+    type = 'stimulus'
 
-    def __init__(self, perception_system):
+    def __init__(self, perception_system, id):
         self.perception_system = perception_system
 
-        self.id = None
+        self.id = id
         self.detected = False
         
         self.last_detection = None
@@ -41,7 +42,7 @@ class Stimulus(object):
             self.disappearance_duration += elapsed
 
 class FaceStimulus(Stimulus):
-    pass
+    type = 'face-stimulus'
 
 class ToyStimulus(Stimulus):
-    pass
+    type = 'toy-stimulus'
