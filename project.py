@@ -27,7 +27,7 @@ class RobotView(object):
         self.drives_name_pile = Pile([])
         self.drives_level_pile = Pile([])
         self.drives_columns = Columns([self.drives_name_pile, self.drives_level_pile])
-        self.drives_frame = Frame(self.drives_columns, Text(('section_title', 'Drives'), align=CENTER))
+        self.drives_frame = Frame(self.drives_columns, Text(('section_title', '\nDrives\n'), align=CENTER))
 
         self.stimuli_id_pile = Pile([])
         self.stimuli_duration_pile = Pile([])
@@ -35,7 +35,7 @@ class RobotView(object):
             self.stimuli_id_pile,
             self.stimuli_duration_pile
         ])
-        self.stimuli_frame = Frame(self.stimuli_columns, Text(('section_title', 'Stimuli'), align=CENTER))
+        self.stimuli_frame = Frame(self.stimuli_columns, Text(('section_title', '\nStimuli\n'), align=CENTER))
 
         self.body = Columns([
             self.drives_frame,
