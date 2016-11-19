@@ -21,6 +21,15 @@ class Drive(object):
         # TODO: Set properly once Affect class is introduced
         self.affect = None
 
+    def is_overwhelmed(self):
+        return self.range_overwhelmed[0] <= self.drive_level <= self.range_overwhelmed[1]
+
+    def is_underwhlmed(self):
+        return self.range_underwhelmed[0] <= self.drive_level <= self.range_underwhelmed[1]
+
+    def is_homeostatic(self):
+        return self.range_homeostatic[0] <= self.drive_level <= self.range_homeostatic[1]
+
     def update(self, elapsed):
         # TODO: Implement properly, calculating the drive
         pass
@@ -34,7 +43,7 @@ class RestDrive(Drive):
         super().__init__(drive_system)
 
     def update(self, elapsed):
-        self.drive_level = min(self.drive_max, self.drive_level + (10 * elapsed))
+        self.drive_level = min(self.drive_max, self.drive_level + (2 * elapsed))
         pass
 
 
@@ -46,7 +55,7 @@ class SoloDrive(Drive):
         super().__init__(drive_system)
 
     def update(self, elapsed):
-        self.drive_level = min(self.drive_max, self.drive_level + (8 * elapsed))
+        self.drive_level = min(self.drive_max, self.drive_level + (1 * elapsed))
 
 
 class SocialDrive(Drive):
@@ -57,7 +66,7 @@ class SocialDrive(Drive):
         super().__init__(drive_system)
 
     def update(self, elapsed):
-        self.drive_level = min(self.drive_max, self.drive_level + (12 * elapsed))
+        self.drive_level = min(self.drive_max, self.drive_level + (3 * elapsed))
 
 
 class DriveSystem(system.System):

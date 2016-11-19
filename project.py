@@ -1,5 +1,5 @@
 import hri
-
+import math
 from urwid import *
 
 class RobotView(object):
@@ -15,13 +15,19 @@ class RobotView(object):
             ('detected', LIGHT_GREEN, DARK_GRAY),
             ('undetected', DARK_RED, DARK_GRAY),
 
+            ('overwhelmed', LIGHT_RED, DARK_GRAY),
+            ('underwhelmed', LIGHT_BLUE, DARK_GRAY),
+            ('homeostatic', LIGHT_GREEN, DARK_GRAY),
+
             ('bg', WHITE, DARK_GRAY)
         ]
 
         self.header = AttrMap(Text(('title', 'Cozmo'), align=CENTER), 'title')
 
-        self.drives_pile = Pile([])
-        self.drives_frame = Frame(self.drives_pile, Text(('section_title', 'Drives'), align=CENTER))
+        self.drives_name_pile = Pile([])
+        self.drives_level_pile = Pile([])
+        self.drives_columns = Columns([self.drives_name_pile, self.drives_level_pile])
+        self.drives_frame = Frame(self.drives_columns, Text(('section_title', 'Drives'), align=CENTER))
 
         self.stimuli_id_pile = Pile([])
         self.stimuli_duration_pile = Pile([])
@@ -44,15 +50,27 @@ class RobotView(object):
         self.update_all(None, None)
 
     def update_drives(self):
-        self.drives_pile.contents.clear()
+        self.drives_name_pile.contents.clear()
+        self.drives_level_pile.contents.clear()
 
         for drive in robot.drive_system.drives:
-            if robot.drive_system.active_drive is drive:
-                markup = [('active', '[*] ' + drive.name)]
-            else:
-                markup = ['    ' + drive.name]
+            name_markup = []
+            level_markup = []
 
-            self.drives_pile.contents.append((Text(markup), ('pack', None)))
+            status = 'overwhelmed' if drive.is_overwhelmed() else (
+                     'underwhelmed' if drive.is_underwhlmed() else (
+                     'homeostatic' if drive.is_homeostatic() else (
+                     '')))
+
+            if robot.drive_system.active_drive is drive:
+                name_markup = [('active', '[*] ' + drive.name)]
+                level_markup = [(status, str(math.floor(drive.drive_level)))]
+            else:
+                name_markup = ['    ' + drive.name]
+                level_markup = [(status, str(math.floor(drive.drive_level)))]
+
+            self.drives_name_pile.contents.append((Text(name_markup), ('pack', None)))
+            self.drives_level_pile.contents.append((Text(level_markup), ('pack', None)))
 
     def update_stimuli(self):
         self.stimuli_id_pile.contents.clear()
