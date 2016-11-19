@@ -36,8 +36,9 @@ class RobotView(object):
         self.stimuli_frame = Frame(self.stimuli_columns, Text(('section_title', '\nStimuli\n'), align=CENTER))
 
         self.emotions_name_pile = Pile([])
+        self.emotions_level_pile = Pile([])
         self.emotions_affect_pile = Pile([])
-        self.emotions_columns = Columns([self.emotions_name_pile, self.emotions_affect_pile])
+        self.emotions_columns = Columns([self.emotions_name_pile, self.emotions_level_pile, self.emotions_affect_pile])
         self.emotions_frame = Frame(self.emotions_columns, Text(('section_title', '\nEmotions\n'), align=CENTER))
 
         self.releasers_id_pile = Pile([])
@@ -116,6 +117,29 @@ class RobotView(object):
             self.stimuli_id_pile.contents.append((Text(id_markup), ('pack', None)))
             self.stimuli_duration_pile.contents.append((Text(duration_markup), ('pack', None)))
 
+    def update_emotions(self):
+        self.emotions_name_pile.contents.clear()
+        self.emotions_level_pile.contents.clear()
+        self.emotions_affect_pile.contents.clear()
+
+        for em in robot.emotion_system.emotions:
+            name_markup = []
+            level_markup = []
+            affect_markup = []
+
+            if em is robot.emotion_system.active_emotion:
+                name_markup = [('active', '[*] ' + em.name)]
+                level_markup = [('active', '{:6.1f}'.format(em.activation_level))]
+                affect_markup = [('active', str(em.net_affect))]
+            else:
+                name_markup = ['    ' + em.name]
+                level_markup = [('not-active', '{:6.1f}'.format(em.activation_level))]
+                affect_markup = [('not-active', str(em.net_affect))]
+
+            self.emotions_name_pile.contents.append((Text(name_markup), ('pack', None)))
+            self.emotions_level_pile.contents.append((Text(level_markup), ('pack', None)))
+            self.emotions_affect_pile.contents.append((Text(affect_markup), ('pack', None)))
+
     def update_releasers(self):
         self.releasers_id_pile.contents.clear()
         self.releasers_level_pile.contents.clear()
@@ -138,6 +162,7 @@ class RobotView(object):
     def update_all(self, loop, data):
         self.update_drives()
         self.update_stimuli()
+        self.update_emotions()
         self.update_releasers()
 
         if loop:
