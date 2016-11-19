@@ -25,13 +25,16 @@ class Robot(object):
         self.update_thread.start()
 
     def on_active_drive_changed(self, previous_drive, new_drive):
-        print('Drive changed from `{}` to `{}'.format(previous_drive.name, new_drive.name))
+        pass
+        # print('Drive changed from `{}` to `{}'.format(previous_drive.name, new_drive.name))
 
     def on_stimulus_detected(self, stimulus):
-        print('Stimulus detected: {} (was not detected for {}s)'.format(stimulus.id, stimulus.disappearance_duration))
+        pass
+        # print('Stimulus detected: {} (was not detected for {}s)'.format(stimulus.id, stimulus.disappearance_duration))
 
     def on_stimulus_disappeared(self, stimulus):
-        print('Stimulus disappeared: {} (was detected for {}s)'.format(stimulus.id, stimulus.detection_duration))
+        pass
+        # print('Stimulus disappeared: {} (was detected for {}s)'.format(stimulus.id, stimulus.detection_duration))
 
     def stop(self):
         self.update_event.set()
