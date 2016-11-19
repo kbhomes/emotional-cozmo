@@ -24,7 +24,7 @@ class Drive(object):
     def is_overwhelmed(self):
         return self.range_overwhelmed[0] <= self.drive_level <= self.range_overwhelmed[1]
 
-    def is_underwhlmed(self):
+    def is_underwhelmed(self):
         return self.range_underwhelmed[0] <= self.drive_level <= self.range_underwhelmed[1]
 
     def is_homeostatic(self):

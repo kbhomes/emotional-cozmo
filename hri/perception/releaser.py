@@ -8,6 +8,9 @@ class Releaser(object):
         self.activation_level = 0
         self.activation_threshold = 100
         self.affect = None
+
+    def is_active(self):
+        return self.activation_level >= self.activation_threshold
     
     def update(self, elapsed):
         """ Computes the activation level and affect for the releaser """
@@ -84,5 +87,35 @@ class DesiredStimulusReleaser(Releaser):
 
         if stimulus and stimulus.detected:
             self.activation_level = 5 * stim.detection_duration
+        else:
+            self.activation_level = 0
+
+
+class OverwhelmedDriveReleaser(Releaser):
+    """ Releaser for detecting if the active drive is overstimulated """
+    name = 'overwhelmed-drive-releaser'
+
+    def update(self, elapsed):
+        drive = self.perception_system.robot.drive_system.active_drive
+        
+        if drive.is_overwhelmed():
+            overwhelmed_amount = drive.range_overwhelmed[1] - drive.drive_level
+            overwhelmed_span = drive.range_overwhelmed[1] - drive.range_overwhelmed[0]
+            self.activation_level = self.activation_threshold + (overwhelmed_amount/overwhelmed_span)*10
+        else:
+            self.activation_level = 0
+
+
+class UnderwhelmedDriveReleaser(Releaser):
+    """ Releaser for detecting if the active drive is understimulated """
+    name = 'underwhelmed-drive-releaser'
+
+    def update(self, elapsed):
+        drive = self.perception_system.robot.drive_system.active_drive
+        
+        if drive.is_underwhelmed():
+            underwhelmed_amount = drive.drive_level - drive.range_underwhelmed[0]
+            underwhelmed_span = drive.range_underwhelmed[1] - drive.range_underwhelmed[0]
+            self.activation_level = self.activation_threshold + (underwhelmed_amount/underwhelmed_span)*10
         else:
             self.activation_level = 0

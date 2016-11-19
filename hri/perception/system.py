@@ -18,9 +18,10 @@ class PerceptionSystem(system.System):
         # Create a list of releasers
         self.releasers = [
             releaser.AbsenceOfDesiredStimulusReleaser(self),
-            releaser.DesiredStimulusReleaser(self)
+            releaser.DesiredStimulusReleaser(self),
+            releaser.UnderwhelmedDriveReleaser(self),
+            releaser.OverwhelmedDriveReleaser(self),
         ]
-        self.active_releaser = self.releasers[0]
 
         # Initialize our sensors
         self.vision = sensor.Vision(self)
@@ -36,9 +37,3 @@ class PerceptionSystem(system.System):
 
         # Update the sensors
         self.vision.update(elapsed)
-
-        # Re-compute the active releaser
-        new_active = max(self.releasers, key=lambda rel: rel.activation_level/rel.activation_threshold)
-        if self.active_releaser is not new_active:
-            self.emit('active-releaser-changed', self.active_releaser, new_active)
-            self.active_releaser = new_active

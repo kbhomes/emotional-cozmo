@@ -68,7 +68,7 @@ class RobotView(object):
             level_markup = []
 
             status = 'overwhelmed' if drive.is_overwhelmed() else (
-                     'underwhelmed' if drive.is_underwhlmed() else (
+                     'underwhelmed' if drive.is_underwhelmed() else (
                      'homeostatic' if drive.is_homeostatic() else (
                      '')))
 
@@ -108,7 +108,7 @@ class RobotView(object):
             id_markup = []
             level_markup = []
 
-            if robot.perception_system.active_releaser is rel:
+            if rel.is_active():
                 id_markup = [('active', '[*] ' + rel.name)]
                 level_markup = [('active', ' {:6.1f} / {:3d}'.format(rel.activation_level, rel.activation_threshold))]
             else:
