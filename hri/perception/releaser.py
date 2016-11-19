@@ -49,7 +49,7 @@ class AbsenceOfDesiredStimulusReleaser(Releaser):
                     break
 
         if not (stimulus and stimulus.detected):
-            self.activation_level = 5 * stim.disappearance_duration
+            self.activation_level = self.activation_threshold + 5 * stim.disappearance_duration
         else:
             self.activation_level = 0
 
@@ -86,7 +86,7 @@ class DesiredStimulusReleaser(Releaser):
                     break
 
         if stimulus and stimulus.detected:
-            self.activation_level = 5 * stim.detection_duration
+            self.activation_level = self.activation_threshold + 5 * stim.detection_duration
         else:
             self.activation_level = 0
 

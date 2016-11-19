@@ -35,22 +35,38 @@ class RobotView(object):
         self.stimuli_columns = Columns([self.stimuli_id_pile, self.stimuli_duration_pile])
         self.stimuli_frame = Frame(self.stimuli_columns, Text(('section_title', '\nStimuli\n'), align=CENTER))
 
+        self.emotions_name_pile = Pile([])
+        self.emotions_affect_pile = Pile([])
+        self.emotions_columns = Columns([self.emotions_name_pile, self.emotions_affect_pile])
+        self.emotions_frame = Frame(self.emotions_columns, Text(('section_title', '\nEmotions\n'), align=CENTER))
+
         self.releasers_id_pile = Pile([])
         self.releasers_level_pile = Pile([])
         self.releasers_columns = Columns([self.releasers_id_pile, self.releasers_level_pile])
         self.releasers_frame = Frame(self.releasers_columns, Text(('section_title', '\nReleasers\n'), align=CENTER))
 
-        self.left_pile = Pile([
-            ('weight', 1, self.drives_frame), 
-            ('fixed', 1, AttrWrap(SolidFill(u'\u2500'), 'line')), 
-            ('weight', 2, self.releasers_frame)
-        ])
-        self.right_pile = Pile([self.stimuli_frame])
+        self.behaviors_name_pile = Pile([])
+        self.behaviors_level_pile = Pile([])
+        self.behaviors_columns = Columns([self.behaviors_name_pile, self.behaviors_level_pile])
+        self.behavoirs_frame = Frame(self.behaviors_columns, Text(('section_title', '\nBehaviors\n'), align=CENTER))
 
-        self.body = Columns([
-            self.left_pile,
+        self.top_columns = Columns([
+            ('weight', 1, self.drives_frame), 
             ('fixed', 1, AttrWrap(SolidFill(u'\u2502'), 'line')), 
-            self.right_pile
+            ('weight', 1, self.stimuli_frame),
+            ('fixed', 1, AttrWrap(SolidFill(u'\u2502'), 'line')), 
+            ('weight', 1, self.emotions_frame),
+        ])
+        self.bottom_columns = Columns([
+            ('weight', 1, self.releasers_frame),
+            ('fixed', 1, AttrWrap(SolidFill(u'\u2502'), 'line')), 
+            ('weight', 1, self.behavoirs_frame),
+        ])
+
+        self.body = Pile([
+            self.top_columns,
+            ('fixed', 1, AttrWrap(SolidFill(u'\u2500'), 'line')), 
+            self.bottom_columns
         ])
         self.body = AttrMap(self.body, 'bg')
 
