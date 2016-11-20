@@ -66,9 +66,9 @@ class RobotView(logging.StreamHandler):
         self.top_columns = Columns([
             ('weight', 1, self.drives_frame), 
             ('fixed', 1, AttrWrap(SolidFill(u'\u2502'), 'line')), 
-            ('weight', 1, self.stimuli_frame),
+            ('weight', 2, self.stimuli_frame),
             ('fixed', 1, AttrWrap(SolidFill(u'\u2502'), 'line')), 
-            ('weight', 1, self.emotions_frame),
+            ('weight', 2, self.emotions_frame),
         ])
         self.middle_columns = Columns([
             ('weight', 1, self.releasers_frame),
@@ -216,5 +216,6 @@ class RobotView(logging.StreamHandler):
 logger = logging.getLogger('robot')
 logger.setLevel(logging.DEBUG)
 robot = hri.robot.Robot(logger)
+robot.start()
 
 RobotView(logger).main()

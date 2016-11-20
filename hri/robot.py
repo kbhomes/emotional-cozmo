@@ -28,7 +28,6 @@ class Robot(object):
         # Set up the update loop
         self.update_event = threading.Event()
         self.update_thread = threading.Thread(target=self.robot_thread)
-        self.update_thread.start()
 
     def on_active_drive_changed(self, previous_drive, new_drive):
         self.logger.info('Drive changed from {} to {}'.format(previous_drive.name, new_drive.name))
@@ -43,6 +42,9 @@ class Robot(object):
         previous_id = previous_emotion.name if previous_emotion else '(none)'
         new_id = new_emotion.name if new_emotion else '(none)'
         self.logger.info('Emotion changed from {} to {}'.format(previous_id, new_id))
+
+    def start(self):
+        self.update_thread.start()
 
     def stop(self):
         self.update_event.set()
