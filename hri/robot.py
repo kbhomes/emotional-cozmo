@@ -4,12 +4,14 @@ from . import emotion
 
 import threading
 import sys
+import logging
 from timeit import default_timer as timeit
 
 class Robot(object):
     """ Robot class composed of all systems representing the robot's state """
 
-    def __init__(self):
+    def __init__(self, logger):
+        self.logger = logger
         self.last_update = timeit()
 
         # Set up the drives
@@ -29,16 +31,18 @@ class Robot(object):
         self.update_thread.start()
 
     def on_active_drive_changed(self, previous_drive, new_drive):
-        pass
+        self.logger.info('Drive changed from {} to {}'.format(previous_drive.name, new_drive.name))
 
     def on_stimulus_detected(self, stimulus):
-        pass
+        self.logger.info('Stimulus detected: {} (was not detected for {:.1f}s)'.format(stimulus.id, stimulus.disappearance_duration))
 
     def on_stimulus_disappeared(self, stimulus):
-        pass
+        self.logger.info('Stimulus disappeared: {} (was detected for {:.1f}s)'.format(stimulus.id, stimulus.detection_duration))
 
     def on_active_emotion_changed(self, previous_emotion, new_emotion):
-        pass
+        previous_id = previous_emotion.name if previous_emotion else '(none)'
+        new_id = new_emotion.name if new_emotion else '(none)'
+        self.logger.info('Emotion changed from {} to {}'.format(previous_id, new_id))
 
     def stop(self):
         self.update_event.set()

@@ -1,15 +1,19 @@
 import hri
 import math
+import logging
 from urwid import *
 
-class RobotView(object):
+class RobotView(logging.StreamHandler):
     
-    def __init__(self):
+    def __init__(self, logger):
+        super().__init__()
+
         self.palette = [
             ('title', DARK_RED + ', bold', LIGHT_GRAY),
             ('section_title', LIGHT_GREEN + ', bold', DARK_GRAY),
             
             ('line', LIGHT_GRAY, DARK_GRAY),
+            ('default', WHITE, DARK_GRAY),
 
             ('active', LIGHT_GREEN, DARK_GRAY),
             ('not-active', WHITE, DARK_GRAY),
@@ -19,6 +23,10 @@ class RobotView(object):
             ('overwhelmed', LIGHT_RED, DARK_GRAY),
             ('underwhelmed', LIGHT_BLUE, DARK_GRAY),
             ('homeostatic', LIGHT_GREEN, DARK_GRAY),
+
+            ('INFO', WHITE, DARK_GRAY),
+            ('DEBUG', LIGHT_BLUE, DARK_GRAY),
+            ('ERROR', LIGHT_RED, DARK_GRAY),
 
             ('bg', WHITE, DARK_GRAY)
         ]
@@ -49,7 +57,11 @@ class RobotView(object):
         self.behaviors_name_pile = Pile([])
         self.behaviors_level_pile = Pile([])
         self.behaviors_columns = Columns([self.behaviors_name_pile, self.behaviors_level_pile])
-        self.behavoirs_frame = Frame(self.behaviors_columns, Text(('section_title', '\nBehaviors\n'), align=CENTER))
+        self.behaviors_frame = Frame(self.behaviors_columns, Text(('section_title', '\nBehaviors\n'), align=CENTER))
+
+        self.console_list_walker = SimpleFocusListWalker([])
+        self.console_list_box = ListBox(self.console_list_walker)
+        self.console_frame = Frame(self.console_list_box, Text(('section_title', '\nConsole\n'), align=CENTER))
 
         self.top_columns = Columns([
             ('weight', 1, self.drives_frame), 
@@ -58,16 +70,21 @@ class RobotView(object):
             ('fixed', 1, AttrWrap(SolidFill(u'\u2502'), 'line')), 
             ('weight', 1, self.emotions_frame),
         ])
-        self.bottom_columns = Columns([
+        self.middle_columns = Columns([
             ('weight', 1, self.releasers_frame),
             ('fixed', 1, AttrWrap(SolidFill(u'\u2502'), 'line')), 
-            ('weight', 1, self.behavoirs_frame),
+            ('weight', 1, self.behaviors_frame),
+        ])
+        self.bottom_columns = Columns([
+            ('weight', 1, self.console_frame),
         ])
 
         self.body = Pile([
-            self.top_columns,
+            ('weight', 1, self.top_columns),
             ('fixed', 1, AttrWrap(SolidFill(u'\u2500'), 'line')), 
-            self.bottom_columns
+            ('weight', 2, self.middle_columns),
+            ('fixed', 1, AttrWrap(SolidFill(u'\u2500'), 'line')), 
+            ('weight', 2, self.bottom_columns),
         ])
         self.body = AttrMap(self.body, 'bg')
 
@@ -75,6 +92,11 @@ class RobotView(object):
 
         # Update all views
         self.update_all(None, None)
+
+        self.setLevel(logging.DEBUG)
+        self.setFormatter(logging.Formatter('%(relativeSeconds)6d: %(message)s'))
+        self.logger = logger
+        self.logger.addHandler(self)
 
     def update_drives(self):
         self.drives_name_pile.contents.clear()
@@ -168,6 +190,19 @@ class RobotView(object):
         if loop:
             loop.set_alarm_in(0.5, self.update_all)
 
+    def emit(self, record):
+        try:
+            record.relativeSeconds = record.relativeCreated / 1000
+            msg = self.format(record)
+            self.console_list_walker.append(Text((record.levelname, msg)))
+
+            num_items = len(self.console_list_walker) - 1
+            if self.console_list_walker.focus == (num_items - 1):
+                self.console_list_walker.focus = num_items
+
+        except Exception:
+            self.handleError(record)
+
     def main(self):
         self.loop = MainLoop(self.view, self.palette, unhandled_input=self.unhandled_input)
         self.loop.set_alarm_in(0.5, self.update_all)
@@ -178,5 +213,8 @@ class RobotView(object):
             robot.stop()
             raise ExitMainLoop()
 
-robot = hri.robot.Robot()
-RobotView().main()
+logger = logging.getLogger('robot')
+logger.setLevel(logging.DEBUG)
+robot = hri.robot.Robot(logger)
+
+RobotView(logger).main()
