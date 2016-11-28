@@ -29,7 +29,7 @@ class RejectStimulusBehavior(Behavior):
 
     def update(self, elapsed):
         """ Activates if the undesired-stimulus-releaser is active """
-        delta = 5 * elapsed
+        delta = 8 * elapsed
         rel = self.behavior_system.robot.perception_system.get_releaser('undesired-stimulus-releaser')
 
         if rel.is_active():
@@ -61,8 +61,11 @@ class BehaviorSystem(system.System):
             new_active = None
 
         if new_active is not self.active_behavior:
-            self.active_behavior.is_active = False
-            new_active.is_active = True
+            if self.active_behavior:
+                self.active_behavior.is_active = False
+            
+            if new_active:
+                new_active.is_active = True
 
             self.emit('active-behavior-changed', self.active_behavior, new_active)
             self.active_behavior = new_active

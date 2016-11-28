@@ -228,6 +228,21 @@ class RobotView(logging.StreamHandler):
         self.loop.run()
 
     def unhandled_input(self, key):
+        # Simulate the toy stimulus
+        stim = None
+
+        if key in ('t', 'T'):
+            stim = robot.perception_system.stimuli['toy-1']
+        if key in ('f', 'F'):
+            stim = robot.perception_system.stimuli['face-1']
+
+        if stim:
+            if stim.detected:
+                stim.disappear()
+            else:
+                stim.detect()
+
+        # Quit
         if key in ('q', 'Q'):
             robot.stop()
             raise ExitMainLoop()

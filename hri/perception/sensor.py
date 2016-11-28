@@ -16,7 +16,8 @@ class Vision(object):
         self.test_toy_current = 0
 
     def update(self, elapsed):
-        self.test_update(elapsed)
+        # self.test_update(elapsed)
+        pass
 
     def test_update(self, elapsed):
         """ Generate random detections and disappearances for a stimulus """
