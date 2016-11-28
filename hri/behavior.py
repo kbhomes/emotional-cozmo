@@ -29,10 +29,29 @@ class RejectStimulusBehavior(Behavior):
 
     def update(self, elapsed):
         """ Activates if the undesired-stimulus-releaser is active """
-        delta = 8 * elapsed
+        delta = 5 * elapsed
         rel = self.behavior_system.robot.perception_system.get_releaser('undesired-stimulus-releaser')
 
         if rel.is_active():
+            self.activation_level = self.activation_level + delta
+        else:
+            self.activation_level = max(0, self.activation_level - delta)
+
+
+class EscapeStimulusBehavior(Behavior):
+    """ Behavior that tries to escape a stimulus that it has been shown """
+    name = 'escape-stimulus-behavior'
+
+    def __init__(self, behavior_system):
+        super().__init__(behavior_system);
+
+    def update(self, elapsed):
+        """ Activates if the undesired-stimulus-releaser is active and the fear emotion is active """
+        delta = 8 * elapsed
+        rel = self.behavior_system.robot.perception_system.get_releaser('undesired-stimulus-releaser')
+        fear = self.behavior_system.robot.emotion_system.emotion_fear
+
+        if rel.is_active() and self.behavior_system.robot.emotion_system.active_emotion == fear:
             self.activation_level = self.activation_level + delta
         else:
             self.activation_level = max(0, self.activation_level - delta)
@@ -45,7 +64,8 @@ class BehaviorSystem(system.System):
         super().__init__(robot)
 
         self.behaviors = [
-            RejectStimulusBehavior(self)
+            RejectStimulusBehavior(self),
+            EscapeStimulusBehavior(self),
         ]
         self.active_behavior = None
 
