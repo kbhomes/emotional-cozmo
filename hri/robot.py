@@ -1,6 +1,7 @@
 from . import drive
 from . import perception
 from . import emotion
+from . import behavior
 
 import threading
 import sys
@@ -24,6 +25,8 @@ class Robot(object):
 
         self.emotion_system = emotion.EmotionSystem(self)
         self.emotion_system.on('active-emotion-changed', self.on_active_emotion_changed)
+
+        self.behavior_system = behavior.BehaviorSystem(self)
 
         # Set up the update loop
         self.update_event = threading.Event()
@@ -59,3 +62,4 @@ class Robot(object):
             self.drive_system.update(elapsed)
             self.perception_system.update(elapsed)
             self.emotion_system.update(elapsed)
+            self.behavior_system.update(elapsed)

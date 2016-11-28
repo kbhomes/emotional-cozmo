@@ -179,6 +179,24 @@ class RobotView(logging.StreamHandler):
 
             self.releasers_id_pile.contents.append((Text(id_markup), ('pack', None)))
             self.releasers_level_pile.contents.append((Text(level_markup), ('pack', None)))
+
+    def update_behaviors(self):
+        self.behaviors_name_pile.contents.clear()
+        self.behaviors_level_pile.contents.clear()
+
+        for beh in robot.behavior_system.behaviors:
+            name_markup = []
+            level_markup = []
+
+            if beh.is_active:
+                name_markup = [('active', '[*] ' + beh.name)]
+                level_markup = [('active', ' {:6.1f} / {:3d}'.format(beh.activation_level, beh.activation_threshold))]
+            else:
+                name_markup = ['    ' + beh.name]
+                level_markup = [('not-active', ' {:6.1f} / {:3d}'.format(beh.activation_level, beh.activation_threshold))]
+
+            self.behaviors_name_pile.contents.append((Text(name_markup), ('pack', None)))
+            self.behaviors_level_pile.contents.append((Text(level_markup), ('pack', None)))
             
 
     def update_all(self, loop, data):
@@ -186,6 +204,7 @@ class RobotView(logging.StreamHandler):
         self.update_stimuli()
         self.update_emotions()
         self.update_releasers()
+        self.update_behaviors()
 
         if loop:
             loop.set_alarm_in(0.5, self.update_all)

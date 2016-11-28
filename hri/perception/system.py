@@ -19,12 +19,21 @@ class PerceptionSystem(system.System):
         self.releasers = [
             releaser.AbsenceOfDesiredStimulusReleaser(self),
             releaser.DesiredStimulusReleaser(self),
+            releaser.UndesiredStimulusReleaser(self),
             releaser.UnderwhelmedDriveReleaser(self),
             releaser.OverwhelmedDriveReleaser(self),
         ]
 
         # Initialize our sensors
         self.vision = sensor.Vision(self)
+
+
+    def get_releaser(self, name):
+        for rel in self.releasers:
+            if rel.name == name:
+                return rel
+        return None
+        
 
     def update(self, elapsed):
         # Update each stimulus
