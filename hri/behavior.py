@@ -57,6 +57,62 @@ class EscapeStimulusBehavior(Behavior):
             self.activation_level = max(0, self.activation_level - delta)
 
 
+class PlayWithToyBehavior(Behavior):
+    """ Behavior that tries to engage and play with a toy stimulus """
+    name = 'play-with-toy-behavior'
+
+    def __init__(self, behavior_system):
+        super().__init__(behavior_system);
+
+    def update(self, elapsed):
+        """ Activates if the desired-stimulus-releaser is active and the solo-drive is active """
+        delta = 8 * elapsed
+        rel = self.behavior_system.robot.perception_system.get_releaser('desired-stimulus-releaser')
+        solo = self.behavior_system.robot.drive_system.solo_drive
+
+        if rel.is_active() and self.behavior_system.robot.drive_system.active_drive == solo:
+            self.activation_level = self.activation_level + delta
+        else:
+            self.activation_level = max(0, self.activation_level - delta)
+
+
+class EngageWithFaceBehavior(Behavior):
+    """ Behavior that tries to engage with a face stimulus """
+    name = 'engage-with-face-behavior'
+
+    def __init__(self, behavior_system):
+        super().__init__(behavior_system);
+
+    def update(self, elapsed):
+        """ Activates if the desired-stimulus-releaser is active and the social-drive is active """
+        delta = 8 * elapsed
+        rel = self.behavior_system.robot.perception_system.get_releaser('desired-stimulus-releaser')
+        social = self.behavior_system.robot.drive_system.social_drive
+
+        if rel.is_active() and self.behavior_system.robot.drive_system.active_drive == social:
+            self.activation_level = self.activation_level + delta
+        else:
+            self.activation_level = max(0, self.activation_level - delta)
+
+
+class RestBehavior(Behavior):
+    """ Behavior where robot tries to rest """
+    name = 'engage-with-face-behavior'
+
+    def __init__(self, behavior_system):
+        super().__init__(behavior_system);
+
+    def update(self, elapsed):
+        """ Activates if the rest-drive is active """
+        delta = 8 * elapsed
+        rest = self.behavior_system.robot.drive_system.rest_drive
+
+        if self.behavior_system.robot.drive_system.active_drive == rest:
+            self.activation_level = self.activation_level + delta
+        else:
+            self.activation_level = max(0, self.activation_level - delta)
+
+
 class BehaviorSystem(system.System):
     """ Represents the behavior system of the robot """
 
@@ -66,6 +122,9 @@ class BehaviorSystem(system.System):
         self.behaviors = [
             RejectStimulusBehavior(self),
             EscapeStimulusBehavior(self),
+            PlayWithToyBehavior(self),
+            EngageWithFaceBehavior(self),
+            RestBehavior(self),
         ]
         self.active_behavior = None
 

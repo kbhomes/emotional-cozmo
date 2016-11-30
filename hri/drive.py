@@ -42,6 +42,10 @@ class RestDrive(Drive):
     def __init__(self, drive_system):
         super().__init__(drive_system)
 
+        self.range_overwhelmed = [self.drive_min, -30]
+        self.range_underwhelmed = [70, self.drive_max]
+        self.range_homeostatic = [self.range_overwhelmed[1], self.range_underwhelmed[0]]
+
     def update(self, elapsed):
         self.drive_level = min(self.drive_max, self.drive_level + (0.5 * elapsed))
         pass
@@ -97,7 +101,7 @@ class DriveSystem(system.System):
         self.drives = [self.rest_drive, self.solo_drive, self.social_drive]
 
         self.rest_drive.drive_level = -100      # Overwhelmed
-        self.solo_drive.drive_level = 20       # Homeostatic
+        self.solo_drive.drive_level = -10       # Homeostatic
         self.social_drive.drive_level = 35      # Underwhelmed
 
         self.active_drive = self.social_drive
