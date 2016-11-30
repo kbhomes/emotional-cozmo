@@ -53,6 +53,11 @@ class AbsenceOfDesiredStimulusReleaser(Releaser):
         else:
             self.activation_level = 0
 
+        if self.is_active():
+            self.affect = (-500, -500, 0)
+        else:
+            self.affect = None
+
 
 class DesiredStimulusReleaser(Releaser):
     """ Releaser for looking for an appropriate stimulus and detecting it, using:
@@ -89,6 +94,11 @@ class DesiredStimulusReleaser(Releaser):
             self.activation_level = self.activation_threshold + 5 * stimulus.detection_duration
         else:
             self.activation_level = 0
+
+        if self.is_active():
+            self.affect = (500, 1000, 500)
+        else:
+            self.affect = None
 
 
 class UndesiredStimulusReleaser(Releaser):
@@ -134,6 +144,11 @@ class UndesiredStimulusReleaser(Releaser):
             else:
                 self.activation_level = 0
 
+        if self.is_active():
+            self.affect = (500, -1000, -500)
+        else:
+            self.affect = None
+
 
 class OverwhelmedDriveReleaser(Releaser):
     """ Releaser for detecting if the active drive is overstimulated """
@@ -149,6 +164,11 @@ class OverwhelmedDriveReleaser(Releaser):
         else:
             self.activation_level = 0
 
+        if self.is_active():
+            self.affect = (1000, -500, -500)
+        else:
+            self.affect = None
+
 
 class UnderwhelmedDriveReleaser(Releaser):
     """ Releaser for detecting if the active drive is understimulated """
@@ -163,3 +183,8 @@ class UnderwhelmedDriveReleaser(Releaser):
             self.activation_level = self.activation_threshold + (underwhelmed_amount/underwhelmed_span)*10
         else:
             self.activation_level = 0
+
+        if self.is_active():
+            self.affect = (-1000, -500, -500)
+        else:
+            self.affect = None

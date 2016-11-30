@@ -97,7 +97,7 @@ class EngageWithFaceBehavior(Behavior):
 
 class RestBehavior(Behavior):
     """ Behavior where robot tries to rest """
-    name = 'engage-with-face-behavior'
+    name = 'rest-behavior'
 
     def __init__(self, behavior_system):
         super().__init__(behavior_system);

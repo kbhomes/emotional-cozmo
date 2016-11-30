@@ -51,7 +51,12 @@ class RobotView(logging.StreamHandler):
 
         self.releasers_id_pile = Pile([])
         self.releasers_level_pile = Pile([])
-        self.releasers_columns = Columns([self.releasers_id_pile, self.releasers_level_pile])
+        self.releasers_affect_pile = Pile([])
+        self.releasers_columns = Columns([
+            ('weight', 3, self.releasers_id_pile), 
+            ('weight', 1, self.releasers_level_pile), 
+            ('weight', 2, self.releasers_affect_pile)
+        ])
         self.releasers_frame = Frame(self.releasers_columns, Text(('section_title', '\nReleasers\n'), align=CENTER))
 
         self.behaviors_name_pile = Pile([])
@@ -165,20 +170,25 @@ class RobotView(logging.StreamHandler):
     def update_releasers(self):
         self.releasers_id_pile.contents.clear()
         self.releasers_level_pile.contents.clear()
+        self.releasers_affect_pile.contents.clear()
 
         for rel in robot.perception_system.releasers:
             id_markup = []
             level_markup = []
+            affect_markup = []
 
             if rel.is_active():
                 id_markup = [('active', '[*] ' + rel.name)]
                 level_markup = [('active', ' {:6.1f} / {:3d}'.format(rel.activation_level, rel.activation_threshold))]
+                affect_markup = [('active', str(rel.affect))]
             else:
                 id_markup = ['    ' + rel.name]
                 level_markup = [('not-active', ' {:6.1f} / {:3d}'.format(rel.activation_level, rel.activation_threshold))]
+                affect_markup = [('not-active', '')]
 
             self.releasers_id_pile.contents.append((Text(id_markup), ('pack', None)))
             self.releasers_level_pile.contents.append((Text(level_markup), ('pack', None)))
+            self.releasers_affect_pile.contents.append((Text(affect_markup), ('pack', None)))
 
     def update_behaviors(self):
         self.behaviors_name_pile.contents.clear()
