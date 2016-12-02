@@ -3,9 +3,11 @@ from . import perception
 from . import emotion
 from . import behavior
 
+import cozmo as cozmosdk
 import threading
 import sys
 import logging
+import asyncio
 from timeit import default_timer as timeit
 
 class Robot(object):
@@ -29,6 +31,7 @@ class Robot(object):
         self.behavior_system = behavior.BehaviorSystem(self)
 
         # Set up the update loop
+        self.connected_event = threading.Event()
         self.update_event = threading.Event()
         self.update_thread = threading.Thread(target=self.robot_thread)
 
@@ -46,13 +49,17 @@ class Robot(object):
         new_id = new_emotion.name if new_emotion else '(none)'
         self.logger.info('Emotion changed from {} to {}'.format(previous_id, new_id))
 
-    def start(self):
+    def start(self, use_cozmo = False):
+        self.use_cozmo = use_cozmo
         self.update_thread.start()
 
     def stop(self):
         self.update_event.set()
 
-    def robot_thread(self):
+    def robot_connected(self, conn):
+        if conn:
+            self.cozmo = conn.wait_for_robot()
+
         while not self.update_event.wait(0.05):
             now = timeit()
             elapsed = now - self.last_update
@@ -63,3 +70,10 @@ class Robot(object):
             self.perception_system.update(elapsed)
             self.emotion_system.update(elapsed)
             self.behavior_system.update(elapsed)
+
+    def robot_thread(self):
+        if self.use_cozmo:
+            cozmosdk.setup_basic_logging()
+            cozmosdk.connect(lambda conn: self.robot_connected(conn))
+        else:
+            self.robot_connected(None)

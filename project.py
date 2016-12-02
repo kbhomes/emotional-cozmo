@@ -1,6 +1,7 @@
 import hri
 import math
 import logging
+import threading
 from urwid import *
 
 def format_affect(affect):
@@ -263,9 +264,11 @@ class RobotView(logging.StreamHandler):
             robot.stop()
             raise ExitMainLoop()
 
+print ('main on ' + str(threading.get_ident()))
+
 logger = logging.getLogger('robot')
 logger.setLevel(logging.DEBUG)
 robot = hri.robot.Robot(logger)
-robot.start()
+robot.start(use_cozmo=True)
 
 RobotView(logger).main()

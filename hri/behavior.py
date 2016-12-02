@@ -1,6 +1,8 @@
 from . import system
 
 import operator
+import cozmo as cozmosdk
+from timeit import default_timer as timeit
 
 class Behavior(object):
     """ Represents a behavior that the robot should enact """
@@ -15,9 +17,52 @@ class Behavior(object):
         self.last_activated = None
         self.activation_duration = 0
 
+    def activate(self):
+        pass
+
+    def deactivate(self):
+        pass
+
     def update(self, elapsed):
         """ Updates activation level based on emotions, drives, and releasers """
         raise NotImplementedError()
+
+
+class SearchForStimulusBehavior(Behavior):
+    """ Behavior that tries to search for stimuli if the absence-of-desired-stimulus-releaser
+        is active (looking for a toy with the solo-drive or a face with the social-drive) """
+    name = 'search-for-stimulus-behavior'
+
+    def __init__(self, behavior_system):
+        super().__init__(behavior_system)
+
+    def activate(self):
+        """ Determine the type of stimulus that should be looked for """
+        robot = self.behavior_system.robot
+        active_drive = robot.drive_system.active_drive
+        cozmo = robot.cozmo
+
+        if active_drive.name == 'solo-drive':
+            # Look for a toy/block
+            self.search_behavior = cozmo.start_behavior(cozmosdk.behavior.BehaviorTypes.LookAroundInPlace)
+        elif active_drive.name == 'social-drive':
+            # Look for a face
+            self.search_behavior = cozmo.start_behavior(cozmosdk.behavior.BehaviorTypes.FindFaces)
+
+    def deactivate(self):
+        """ Deactivate the search behavior if it's active """
+        if self.search_behavior:
+            self.search_behavior.stop()
+
+    def update(self, elapsed):
+        """ Activates if the absence-of-desired-stimulus-releaser is active """
+        delta = 5 * elapsed
+        rel = self.behavior_system.robot.perception_system.get_releaser('absence-of-desired-stimulus-releaser')
+
+        if rel.is_active():
+            self.activation_level = self.activation_level + delta
+        else:
+            self.activation_level = max(0, self.activation_level - delta)
 
 
 class RejectStimulusBehavior(Behavior):
@@ -25,11 +70,11 @@ class RejectStimulusBehavior(Behavior):
     name = 'reject-stimulus-behavior'
 
     def __init__(self, behavior_system):
-        super().__init__(behavior_system);
+        super().__init__(behavior_system)
 
     def update(self, elapsed):
         """ Activates if the undesired-stimulus-releaser is active """
-        delta = 5 * elapsed
+        delta = 8 * elapsed
         rel = self.behavior_system.robot.perception_system.get_releaser('undesired-stimulus-releaser')
 
         if rel.is_active():
@@ -120,6 +165,7 @@ class BehaviorSystem(system.System):
         super().__init__(robot)
 
         self.behaviors = [
+            SearchForStimulusBehavior(self),
             RejectStimulusBehavior(self),
             EscapeStimulusBehavior(self),
             PlayWithToyBehavior(self),
@@ -133,6 +179,8 @@ class BehaviorSystem(system.System):
         
         for behavior in self.behaviors:
             behavior.update(elapsed)
+            if behavior.is_active:
+                behavior.activation_duration += elapsed
 
         new_active = max(self.behaviors, key=operator.attrgetter('activation_level'))
 
@@ -142,9 +190,14 @@ class BehaviorSystem(system.System):
         if new_active is not self.active_behavior:
             if self.active_behavior:
                 self.active_behavior.is_active = False
-            
-            if new_active:
-                new_active.is_active = True
+                self.active_behavior.deactivate()
 
             self.emit('active-behavior-changed', self.active_behavior, new_active)
             self.active_behavior = new_active
+
+            # Activate the new behavior
+            if self.active_behavior:
+                self.active_behavior.is_active = True
+                self.active_behavior.last_activated = timeit()
+                self.active_behavior.activation_duration = 0
+                self.active_behavior.activate()
