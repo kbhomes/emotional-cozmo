@@ -72,6 +72,21 @@ class RejectStimulusBehavior(Behavior):
     def __init__(self, behavior_system):
         super().__init__(behavior_system)
 
+    def activate(self):
+        """ Show an upset expression """
+        robot = self.behavior_system.robot
+        active_drive = robot.drive_system.active_drive
+        cozmo = robot.cozmo
+
+        # Play the animation
+        try:
+            self.angry_anim = cozmo.play_anim_trigger(cozmosdk.anim.Triggers.DriveStartAngry)
+        except:
+            pass
+
+    def deactivate(self):
+        pass
+
     def update(self, elapsed):
         """ Activates if the undesired-stimulus-releaser is active """
         delta = 8 * elapsed
