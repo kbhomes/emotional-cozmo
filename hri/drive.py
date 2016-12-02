@@ -18,7 +18,6 @@ class Drive(object):
         self.range_underwhelmed = [30, self.drive_max]
         self.range_homeostatic = [self.range_overwhelmed[1], self.range_underwhelmed[0]]
 
-        # TODO: Set properly once Affect class is introduced
         self.affect = None
 
     def is_overwhelmed(self):

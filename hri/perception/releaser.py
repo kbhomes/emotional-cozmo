@@ -9,6 +9,8 @@ class Releaser(object):
         self.activation_threshold = 100
         self.affect = None
 
+        self.active_duration = 0
+
     def is_active(self):
         return self.activation_level >= self.activation_threshold
     
@@ -54,8 +56,10 @@ class AbsenceOfDesiredStimulusReleaser(Releaser):
             self.activation_level = 0
 
         if self.is_active():
-            self.affect = (-500, -500, 0)
+            self.active_duration += elapsed
+            self.affect = (-500 - (self.active_duration*5), -500 - (self.active_duration*5), -500 - (self.active_duration*5))
         else:
+            self.active_duration = 0
             self.affect = None
 
 
@@ -96,8 +100,10 @@ class DesiredStimulusReleaser(Releaser):
             self.activation_level = 0
 
         if self.is_active():
-            self.affect = (500, 1000, 500)
+            self.active_duration += elapsed
+            self.affect = (1000 + (self.active_duration*5), 1000 + (self.active_duration*5), 500 + (self.active_duration*5))
         else:
+            self.active_duration = 0
             self.affect = None
 
 
@@ -145,8 +151,10 @@ class UndesiredStimulusReleaser(Releaser):
                 self.activation_level = 0
 
         if self.is_active():
-            self.affect = (500, -1000, -500)
+            self.active_duration += elapsed
+            self.affect = (-250 - (self.active_duration*5), -1000 - (self.active_duration*5), -500 - (self.active_duration*5))
         else:
+            self.active_duration = 0
             self.affect = None
 
 
@@ -165,8 +173,10 @@ class OverwhelmedDriveReleaser(Releaser):
             self.activation_level = 0
 
         if self.is_active():
-            self.affect = (1000, -500, -500)
+            self.active_duration += elapsed
+            self.affect = (1000 + (self.active_duration*5), -500 - (self.active_duration*5), -500 - (self.active_duration*5))
         else:
+            self.active_duration = 0
             self.affect = None
 
 
@@ -185,6 +195,8 @@ class UnderwhelmedDriveReleaser(Releaser):
             self.activation_level = 0
 
         if self.is_active():
-            self.affect = (-1000, -500, -500)
+            self.active_duration += elapsed
+            self.affect = (-1000 - (self.active_duration*5), -500 - (self.active_duration*5), -500 - (self.active_duration*5))
         else:
+            self.active_duration = 0
             self.affect = None

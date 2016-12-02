@@ -15,6 +15,7 @@ class Emotion(object):
         self.activation_bias = 0
         self.activation_persistence = 0
         self.activation_decay = 0
+        self.activation_max = 200
 
         self.threshold_expression = 60
         self.threshold_behavior = 100
@@ -36,6 +37,12 @@ class Emotion(object):
     def compute_net_affect(self):
         """ Compute the net affect of this emotion process """
         filtered_affects = [self.filter_affect(rel.affect) for rel in self.emotion_system.robot.perception_system.releasers if rel.is_active()]
+        filtered_affects = [(
+            min(max(affect[0], -1250), 1250) if affect[0] else None,
+            min(max(affect[1], -1250), 1250) if affect[1] else None,
+            min(max(affect[2], -1250), 1250) if affect[2] else None,
+        ) for affect in filtered_affects]
+
         arousal_count = 0
         arousal_value = 0
         valence_count = 0
@@ -61,12 +68,32 @@ class Emotion(object):
         if stance_count: stance_value /= stance_count
         self.net_affect = (arousal_value, valence_value, stance_value)
 
+    def compute_elicitation_level(self):
+        """ Compute the elicitation level based on the net affect """
+        raise NotImplementedError()
+
+    def compute_activation_level(self):
+        """ Compute the activation level of this emotion process """
+        # If the net affect has any None components, then it cannot be activated
+        if not all(self.net_affect):
+            # If we are already activated, let it decay naturally
+            if self.activation_level >= self.threshold_expression:
+                self.activation_level -= self.activation_decay
+            else:
+                self.activation_level = 0
+        else:
+            self.activation_level = max(0, min(abs(self.elicitation_level) + self.activation_bias + self.activation_persistence - self.activation_decay, self.activation_max))
+
     def update(self, elapsed):
         """ Combines all releasers into an elicitation and activation level """
         self.compute_net_affect()
+        self.compute_elicitation_level()
+        self.compute_activation_level()
 
-        pass
-
+        if self.activation_level > self.threshold_expression:
+            self.activation_decay += elapsed / 10
+        else:
+            self.reset_activation_terms()
 
 class JoyEmotion(Emotion):
     """ The joy emotion (for example, when a desired stimulus is present) """
@@ -79,6 +106,12 @@ class JoyEmotion(Emotion):
         self.activation_persistence = 10
         self.activation_decay = 0
 
+    def reset_activation_terms(self):
+        """ Reset the temporally-bound activation terms """
+        self.activation_bias = 20
+        self.activation_persistence = 10
+        self.activation_decay = 0
+
     def filter_affect(self, affect):
         """ The joy-emotion deals with higher arousal, higher valence, and higher stance """
         return (
@@ -86,6 +119,9 @@ class JoyEmotion(Emotion):
             affect[1] if affect[1] > 250 else None,
             affect[2] if affect[2] > 250 else None, 
         )
+
+    def compute_elicitation_level(self):
+        self.elicitation_level = sum(self.net_affect) / 50
 
 
 class SorrowEmotion(Emotion):
@@ -99,13 +135,22 @@ class SorrowEmotion(Emotion):
         self.activation_persistence = 10
         self.activation_decay = 0
 
+    def reset_activation_terms(self):
+        """ Reset the temporally-bound activation terms """
+        self.activation_bias = 20
+        self.activation_persistence = 10
+        self.activation_decay = 0
+
     def filter_affect(self, affect):
-        """ The sorrow-emotion deals with lower arousal, lower valence, and neutral stance """
+        """ The sorrow-emotion deals with non-high arousal, lower valence, and lower stance """
         return (
-            affect[0] if affect[0] < -250 else None,
+            affect[0] if affect[0] < 250 else None,
             affect[1] if affect[1] < -250 else None,
-            affect[2] if -250 < affect[2] <  250 else None, 
+            affect[2] if affect[2] < -250 else None, 
         )
+
+    def compute_elicitation_level(self):
+        self.elicitation_level = sum(self.net_affect) / 50
 
 
 class FearEmotion(Emotion):
@@ -119,6 +164,12 @@ class FearEmotion(Emotion):
         self.activation_persistence = 10
         self.activation_decay = 0
 
+    def reset_activation_terms(self):
+        """ Reset the temporally-bound activation terms """
+        self.activation_bias = 20
+        self.activation_persistence = 10
+        self.activation_decay = 0
+
     def filter_affect(self, affect):
         """ The sorrow-emotion deals with higher arousal, lower valence, and lower stance """
         return (
@@ -126,6 +177,9 @@ class FearEmotion(Emotion):
             affect[1] if affect[1] < -250 else None,
             affect[2] if affect[2] < - 250 else None, 
         )
+
+    def compute_elicitation_level(self):
+        self.elicitation_level = sum(self.net_affect) / 200
 
 
 class EmotionSystem(system.System):

@@ -3,6 +3,12 @@ import math
 import logging
 from urwid import *
 
+def format_affect(affect):
+    if any(affect):
+        return '({}, {}, {})'.format(int(affect[0] or 0), int(affect[1] or 0), int(affect[2] or 0))
+    else:
+        return ''
+
 class RobotView(logging.StreamHandler):
     
     def __init__(self, logger):
@@ -157,11 +163,11 @@ class RobotView(logging.StreamHandler):
             if em is robot.emotion_system.active_emotion:
                 name_markup = [('active', '[*] ' + em.name)]
                 level_markup = [('active', '{:6.1f}'.format(em.activation_level))]
-                affect_markup = [('active', str(em.net_affect))]
+                affect_markup = [('active', format_affect(em.net_affect))]
             else:
                 name_markup = ['    ' + em.name]
                 level_markup = [('not-active', '{:6.1f}'.format(em.activation_level))]
-                affect_markup = [('not-active', str(em.net_affect))]
+                affect_markup = [('not-active', format_affect(em.net_affect))]
 
             self.emotions_name_pile.contents.append((Text(name_markup), ('pack', None)))
             self.emotions_level_pile.contents.append((Text(level_markup), ('pack', None)))
@@ -180,7 +186,7 @@ class RobotView(logging.StreamHandler):
             if rel.is_active():
                 id_markup = [('active', '[*] ' + rel.name)]
                 level_markup = [('active', ' {:6.1f} / {:3d}'.format(rel.activation_level, rel.activation_threshold))]
-                affect_markup = [('active', str(rel.affect))]
+                affect_markup = [('active', format_affect(rel.affect))]
             else:
                 id_markup = ['    ' + rel.name]
                 level_markup = [('not-active', ' {:6.1f} / {:3d}'.format(rel.activation_level, rel.activation_threshold))]

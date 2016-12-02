@@ -53,7 +53,7 @@ class Robot(object):
         self.update_event.set()
 
     def robot_thread(self):
-        while not self.update_event.wait(0.1):
+        while not self.update_event.wait(0.05):
             now = timeit()
             elapsed = now - self.last_update
             self.last_update = now
