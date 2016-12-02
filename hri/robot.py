@@ -73,7 +73,7 @@ class Robot(object):
 
     def robot_thread(self):
         if self.use_cozmo:
-            cozmosdk.setup_basic_logging()
-            cozmosdk.connect(lambda conn: self.robot_connected(conn))
+            cozmosdk.logger = self.logger
+            cozmosdk.connect_with_tkviewer(lambda conn: self.robot_connected(conn))
         else:
             self.robot_connected(None)

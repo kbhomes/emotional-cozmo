@@ -16,7 +16,23 @@ class Vision(object):
         self.test_toy_current = 0
 
     def update(self, elapsed):
-        # self.test_update(elapsed)
+        robot = self.perception_system.robot
+        cozmo = robot.cozmo
+
+        # If the robot sees any faces, mark 'face-1' as detected:
+        first_face = next(cozmo.world.visible_faces, None)
+        if first_face:
+            self.perception_system.stimuli['face-1'].detect()
+        else:
+            self.perception_system.stimuli['face-1'].disappear()
+
+        # If the robot sees any blocks, mark 'face-1' as detected:
+        first_block = next(cozmo.world.visible_objects, None)
+        if first_block:
+            self.perception_system.stimuli['toy-1'].detect()
+        else:
+            self.perception_system.stimuli['toy-1'].disappear()
+
         pass
 
     def test_update(self, elapsed):

@@ -62,7 +62,7 @@ class SearchForStimulusBehavior(Behavior):
         if rel.is_active():
             self.activation_level = self.activation_level + delta
         else:
-            self.activation_level = max(0, self.activation_level - delta)
+            self.activation_level = 0
 
 
 class RejectStimulusBehavior(Behavior):
@@ -126,7 +126,22 @@ class EngageWithFaceBehavior(Behavior):
     name = 'engage-with-face-behavior'
 
     def __init__(self, behavior_system):
-        super().__init__(behavior_system);
+        super().__init__(behavior_system)
+
+    def activate(self):
+        """ Look up at the face, show a happy expression, and say hello """
+        robot = self.behavior_system.robot
+        active_drive = robot.drive_system.active_drive
+        cozmo = robot.cozmo
+
+        # Play the animation
+        try:
+            self.happy_anim = cozmo.play_anim_trigger(cozmosdk.anim.Triggers.AcknowledgeFaceNamed)
+        except:
+            pass
+
+    def deactivate(self):
+        pass
 
     def update(self, elapsed):
         """ Activates if the desired-stimulus-releaser is active and the social-drive is active """
