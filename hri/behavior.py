@@ -124,6 +124,23 @@ class PlayWithToyBehavior(Behavior):
     def __init__(self, behavior_system):
         super().__init__(behavior_system);
 
+    def activate(self):
+        """ Roll the block over """
+        robot = self.behavior_system.robot
+        active_drive = robot.drive_system.active_drive
+        cozmo = robot.cozmo
+
+        # Begin the behavior to roll the block over
+        try:
+            self.roll_block_behavior = cozmo.start_behavior(cozmosdk.behavior.BehaviorTypes.RollBlock)
+        except:
+            pass
+
+    def deactivate(self):
+        """ Deactivate the rolling behavior if it's active """
+        if self.roll_block_behavior:
+            self.roll_block_behavior.stop()
+
     def update(self, elapsed):
         """ Activates if the desired-stimulus-releaser is active and the solo-drive is active """
         delta = 8 * elapsed

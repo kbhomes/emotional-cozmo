@@ -9,6 +9,9 @@ class Vision(object):
     def __init__(self, perception_system):
         self.perception_system = perception_system
 
+        self.face_disappearance_timeout = 3 # seconds
+        self.toy_disappearance_timeout = 3 # seconds
+
         # For testing!
         self.test_face_target = random.randint(-100, 100)
         self.test_face_current = 0
@@ -22,16 +25,22 @@ class Vision(object):
         # If the robot sees any faces, mark 'face-1' as detected:
         first_face = next(cozmo.world.visible_faces, None)
         if first_face:
-            self.perception_system.stimuli['face-1'].detect()
+            self.face_disappearance_timeout = 3
+            self.perception_system.stimuli['face-1'].detect(first_face, elapsed)
         else:
-            self.perception_system.stimuli['face-1'].disappear()
+            self.face_disappearance_timeout -= elapsed
+            if self.face_disappearance_timeout <= 0:
+                self.perception_system.stimuli['face-1'].disappear()
 
         # If the robot sees any blocks, mark 'face-1' as detected:
         first_block = next(cozmo.world.visible_objects, None)
         if first_block:
-            self.perception_system.stimuli['toy-1'].detect()
+            self.toy_disappearance_timeout = 3
+            self.perception_system.stimuli['toy-1'].detect(first_block, elapsed)
         else:
-            self.perception_system.stimuli['toy-1'].disappear()
+            self.toy_disappearance_timeout -= elapsed
+            if self.toy_disappearance_timeout <= 0:
+                self.perception_system.stimuli['toy-1'].disappear()
 
         pass
 

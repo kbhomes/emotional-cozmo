@@ -100,8 +100,8 @@ class DriveSystem(system.System):
         self.drives = [self.rest_drive, self.solo_drive, self.social_drive]
 
         self.rest_drive.drive_level = -100      # Overwhelmed
-        self.solo_drive.drive_level = -10       # Homeostatic
-        self.social_drive.drive_level = 35      # Underwhelmed
+        self.solo_drive.drive_level = 35       # Underwhelmed
+        self.social_drive.drive_level = -20      # Homeostatic
 
         self.active_drive = self.social_drive
 
