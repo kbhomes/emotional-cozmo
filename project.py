@@ -47,7 +47,8 @@ class RobotView(logging.StreamHandler):
 
         self.stimuli_id_pile = Pile([])
         self.stimuli_duration_pile = Pile([])
-        self.stimuli_columns = Columns([self.stimuli_id_pile, self.stimuli_duration_pile])
+        self.stimuli_speed_pile = Pile([])
+        self.stimuli_columns = Columns([self.stimuli_id_pile, self.stimuli_duration_pile, self.stimuli_speed_pile])
         self.stimuli_frame = Frame(self.stimuli_columns, Text(('section_title', '\nStimuli\n'), align=CENTER))
 
         self.emotions_name_pile = Pile([])
@@ -136,20 +137,27 @@ class RobotView(logging.StreamHandler):
     def update_stimuli(self):
         self.stimuli_id_pile.contents.clear()
         self.stimuli_duration_pile.contents.clear()
+        self.stimuli_speed_pile.contents.clear()
 
         for id, stim in robot.perception_system.stimuli.items():
             id_markup = []
             duration_markup = []
+            speed_markup = []
 
             if stim.detected:
+                speed = stim.average_speed or 0
+
                 id_markup = [('active', '[*] ' + stim.id)]
                 duration_markup = [('detected', ' {:8.1f}s'.format(stim.detection_duration))]
+                speed_markup = [('detected', '{:6.1f} mm/s'.format(speed))]
             else:
                 id_markup = ['    ' + stim.id]
                 duration_markup = [('undetected', '({:8.1f}s)'.format(stim.disappearance_duration))]
+                speed_markup = ['']
 
             self.stimuli_id_pile.contents.append((Text(id_markup), ('pack', None)))
             self.stimuli_duration_pile.contents.append((Text(duration_markup), ('pack', None)))
+            self.stimuli_speed_pile.contents.append((Text(speed_markup), ('pack', None)))
 
     def update_emotions(self):
         self.emotions_name_pile.contents.clear()

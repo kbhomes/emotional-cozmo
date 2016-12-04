@@ -1,6 +1,7 @@
 from . import system
 
 import operator
+import random
 import cozmo as cozmosdk
 from timeit import default_timer as timeit
 
@@ -36,18 +37,21 @@ class SearchForStimulusBehavior(Behavior):
     def __init__(self, behavior_system):
         super().__init__(behavior_system)
 
+        self.search_behavior = None
+
     def activate(self):
         """ Determine the type of stimulus that should be looked for """
-        robot = self.behavior_system.robot
-        active_drive = robot.drive_system.active_drive
-        cozmo = robot.cozmo
+        self.robot = self.behavior_system.robot
+        self.cozmo = self.robot.cozmo
+
+        active_drive = self.robot.drive_system.active_drive
 
         if active_drive.name == 'solo-drive':
             # Look for a toy/block
-            self.search_behavior = cozmo.start_behavior(cozmosdk.behavior.BehaviorTypes.LookAroundInPlace)
+            self.search_behavior = self.cozmo.start_behavior(cozmosdk.behavior.BehaviorTypes.LookAroundInPlace)
         elif active_drive.name == 'social-drive':
             # Look for a face
-            self.search_behavior = cozmo.start_behavior(cozmosdk.behavior.BehaviorTypes.FindFaces)
+            self.search_behavior = self.cozmo.start_behavior(cozmosdk.behavior.BehaviorTypes.FindFaces)
 
     def deactivate(self):
         """ Deactivate the search behavior if it's active """
@@ -72,20 +76,22 @@ class RejectStimulusBehavior(Behavior):
     def __init__(self, behavior_system):
         super().__init__(behavior_system)
 
+        self.angry_anim = None
+
     def activate(self):
         """ Show an upset expression """
-        robot = self.behavior_system.robot
-        active_drive = robot.drive_system.active_drive
-        cozmo = robot.cozmo
+        self.robot = self.behavior_system.robot
+        self.cozmo = self.robot.cozmo
 
         # Play the animation
         try:
-            self.angry_anim = cozmo.play_anim_trigger(cozmosdk.anim.Triggers.DriveStartAngry)
+            self.angry_anim = self.cozmo.play_anim_trigger(cozmosdk.anim.Triggers.DriveStartAngry)
         except:
             pass
 
     def deactivate(self):
-        pass
+        if self.angry_anim and self.angry_anim.is_running:
+            self.angry_anim.abort()
 
     def update(self, elapsed):
         """ Activates if the undesired-stimulus-releaser is active """
@@ -103,15 +109,53 @@ class EscapeStimulusBehavior(Behavior):
     name = 'escape-stimulus-behavior'
 
     def __init__(self, behavior_system):
-        super().__init__(behavior_system);
+        super().__init__(behavior_system)
+
+        self.scared_action = None
+        self.drive_away_action = None
+        self.turn_away_action = None
+
+    def activate(self):
+        self.robot = self.behavior_system.robot
+        self.cozmo = self.robot.cozmo
+
+        try:
+            self.scared_action = self.cozmo.play_anim_trigger(cozmosdk.anim.Triggers.ReactToCliff)
+            self.scared_action.on_completed(lambda evt, **kwargs: self._scared_animation_completed(evt))
+        except:
+            pass
+
+    def _scared_animation_completed(self, evt):
+        try:
+            self.drive_away_action = self.cozmo.drive_straight(cozmosdk.util.distance_inches(-2), cozmosdk.util.speed_mmps(100), should_play_anim=False)
+            self.drive_away_action.on_completed(lambda evt, **kwargs: self._drive_away_action_completed(evt))
+        except:
+            pass
+
+    def _drive_away_action_completed(self, evt):
+        try:
+            self.turn_away_action = self.cozmo.turn_in_place(cozmosdk.util.degrees(-90))
+        except:
+            pass
+
+    def deactivate(self):
+        if self.scared_action and self.scared_action.is_running:
+            self.scared_action.abort()
+
+        if self.drive_away_action and self.drive_away_action.is_running:
+            self.drive_away_action.abort()
+
+        if self.turn_away_action and self.turn_away_action.is_running:
+            self.turn_away_action.abort()
 
     def update(self, elapsed):
-        """ Activates if the undesired-stimulus-releaser is active and the fear emotion is active """
-        delta = 8 * elapsed
-        rel = self.behavior_system.robot.perception_system.get_releaser('undesired-stimulus-releaser')
+        """ Activates if the threatening-stimulus-releaser is active and the fear emotion is active """
+        delta = 20 * elapsed
+        rel = self.behavior_system.robot.perception_system.get_releaser('threatening-stimulus-releaser')
         fear = self.behavior_system.robot.emotion_system.emotion_fear
 
-        if rel.is_active() and self.behavior_system.robot.emotion_system.active_emotion == fear:
+        # TODO: incorporate feare
+        if rel.is_active(): # and self.behavior_system.robot.emotion_system.active_emotion == fear:
             self.activation_level = self.activation_level + delta
         else:
             self.activation_level = max(0, self.activation_level - delta)
@@ -122,23 +166,32 @@ class PlayWithToyBehavior(Behavior):
     name = 'play-with-toy-behavior'
 
     def __init__(self, behavior_system):
-        super().__init__(behavior_system);
+        super().__init__(behavior_system)
+
+        self.happy_anim = None
+        self.roll_block_behavior = None
 
     def activate(self):
         """ Roll the block over """
-        robot = self.behavior_system.robot
-        active_drive = robot.drive_system.active_drive
-        cozmo = robot.cozmo
+        self.robot = self.behavior_system.robot
+        self.cozmo = self.robot.cozmo
 
         # Begin the behavior to roll the block over
         try:
-            self.roll_block_behavior = cozmo.start_behavior(cozmosdk.behavior.BehaviorTypes.RollBlock)
+            self.happy_anim = self.cozmo.play_anim_trigger(cozmosdk.anim.Triggers.AcknowledgeFaceNamed)
+            self.happy_anim.on_completed(lambda evt, **kwargs: self._happy_animation_completed(evt))
         except:
             pass
 
+    def _happy_animation_completed(self, evt):
+        self.roll_block_behavior = self.cozmo.start_behavior(cozmosdk.behavior.BehaviorTypes.RollBlock)
+
     def deactivate(self):
-        """ Deactivate the rolling behavior if it's active """
-        if self.roll_block_behavior:
+        """ Deactivate the behaviors if they are active """
+        if self.happy_anim and self.happy_anim.is_running:
+            self.happy_anim.abort()
+
+        if self.roll_block_behavior and self.roll_block_behavior.is_active:
             self.roll_block_behavior.stop()
 
     def update(self, elapsed):
@@ -159,21 +212,45 @@ class EngageWithFaceBehavior(Behavior):
 
     def __init__(self, behavior_system):
         super().__init__(behavior_system)
+        
+        self.phrases = ['Hello', 'Hi', 'Hi there', 'Hey']
+        self.happy_anim = None
+        self.phrase_action = None
 
     def activate(self):
         """ Look up at the face, show a happy expression, and say hello """
-        robot = self.behavior_system.robot
-        active_drive = robot.drive_system.active_drive
-        cozmo = robot.cozmo
+        self.robot = self.behavior_system.robot
+        self.cozmo = self.robot.cozmo
 
+        self._start_loop()
+
+    def _start_loop(self):
         # Play the animation
         try:
-            self.happy_anim = cozmo.play_anim_trigger(cozmosdk.anim.Triggers.AcknowledgeFaceNamed)
+            self.happy_anim = self.cozmo.play_anim_trigger(cozmosdk.anim.Triggers.AcknowledgeFaceNamed)
+            self.happy_anim.on_completed(lambda evt, **kwargs: self._happy_anim_completed(evt))
         except:
             pass
 
+    def _happy_anim_completed(self, evt):
+        phrase = random.choice(self.phrases)
+
+        # Say a phrase
+        try:
+            self.phrase_action = self.cozmo.say_text(phrase)
+            self.phrase_action.on_completed(lambda evt, **kwargs: self._phrase_action_completed(evt))
+        except:
+            pass
+
+    def _phrase_action_completed(self, evt):
+        self._start_loop()
+
     def deactivate(self):
-        pass
+        if self.happy_anim and self.happy_anim.is_running:
+            self.happy_anim.abort()
+
+        if self.phrase_action and self.phrase_action.is_running:
+            self.phrase_action.abort()
 
     def update(self, elapsed):
         """ Activates if the desired-stimulus-releaser is active and the social-drive is active """

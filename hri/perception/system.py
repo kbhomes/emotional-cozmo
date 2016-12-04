@@ -20,6 +20,7 @@ class PerceptionSystem(system.System):
             releaser.AbsenceOfDesiredStimulusReleaser(self),
             releaser.DesiredStimulusReleaser(self),
             releaser.UndesiredStimulusReleaser(self),
+            releaser.ThreateningStimulusReleaser(self),
             releaser.UnderwhelmedDriveReleaser(self),
             releaser.OverwhelmedDriveReleaser(self),
         ]

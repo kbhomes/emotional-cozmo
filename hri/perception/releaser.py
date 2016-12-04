@@ -200,3 +200,39 @@ class UnderwhelmedDriveReleaser(Releaser):
         else:
             self.active_duration = 0
             self.affect = None
+
+
+class ThreateningStimulusReleaser(Releaser):
+    """ Releaser for detecting a threatening stimulus
+
+    [ ] Stimulus:
+        - A `face-stimulus` moving with a speed faster than 300 mm/s
+        - A `toy-stimulus` moving with a speed faster than 100 mm/s
+    
+    """
+    name = 'threatening-stimulus-releaser'
+
+    def update(self, elapsed):
+        stimulus = None
+
+        # Find the first stimulus that is above threshold
+        for id, stim in self.perception_system.stimuli.items():
+            if stim.detected and stim.type == 'toy-stimulus' and (stim.average_speed or 0) > 100:
+                stimulus = stim
+                break
+            elif stim.detected and stim.type == 'face-stimulus' and (stim.average_speed or 0) > 300:
+                stimulus = stim
+                break
+
+        # If a stimulus is above threshold
+        if stimulus and stimulus.detected:
+            self.activation_level += 40 * elapsed
+        else:
+            self.activation_level = max(0, self.activation_level - 40*elapsed)
+
+        if self.is_active():
+            self.active_duration += elapsed
+            self.affect = (1000 + (self.active_duration*5), -1000 - (self.active_duration*5), -1000 - (self.active_duration*5))
+        else:
+            self.active_duration = 0
+            self.affect = None
