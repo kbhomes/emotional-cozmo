@@ -56,7 +56,7 @@ class AbsenceOfDesiredStimulusReleaser(Releaser):
             self.activation_level = 0
 
         if self.is_active():
-            self.active_duration += elapsed
+            self.active_duration += 0 #elapsed
             self.affect = (-500 - (self.active_duration*5), -500 - (self.active_duration*5), -500 - (self.active_duration*5))
         else:
             self.active_duration = 0
@@ -100,7 +100,7 @@ class DesiredStimulusReleaser(Releaser):
             self.activation_level = 0
 
         if self.is_active():
-            self.active_duration += elapsed
+            self.active_duration += 0 #elapsed
             self.affect = (1000 + (self.active_duration*5), 1000 + (self.active_duration*5), 500 + (self.active_duration*5))
         else:
             self.active_duration = 0
@@ -151,7 +151,7 @@ class UndesiredStimulusReleaser(Releaser):
                 self.activation_level = 0
 
         if self.is_active():
-            self.active_duration += elapsed
+            self.active_duration += 0 #elapsed
             self.affect = (-250 - (self.active_duration*5), -1000 - (self.active_duration*5), -500 - (self.active_duration*5))
         else:
             self.active_duration = 0
@@ -173,7 +173,7 @@ class OverwhelmedDriveReleaser(Releaser):
             self.activation_level = 0
 
         if self.is_active():
-            self.active_duration += elapsed
+            self.active_duration += 0 #elapsed
             self.affect = (1000 + (self.active_duration*5), -500 - (self.active_duration*5), -500 - (self.active_duration*5))
         else:
             self.active_duration = 0
@@ -195,7 +195,7 @@ class UnderwhelmedDriveReleaser(Releaser):
             self.activation_level = 0
 
         if self.is_active():
-            self.active_duration += elapsed
+            self.active_duration += 0 #elapsed
             self.affect = (-1000 - (self.active_duration*5), -500 - (self.active_duration*5), -500 - (self.active_duration*5))
         else:
             self.active_duration = 0
@@ -226,12 +226,21 @@ class ThreateningStimulusReleaser(Releaser):
 
         # If a stimulus is above threshold
         if stimulus and stimulus.detected:
-            self.activation_level += 40 * elapsed
+            mult = 40
+
+            if self.activation_level < 100:
+                mult = 40
+            elif self.activation_level < 130:
+                mult = 20
+            else:
+                mult = 5
+
+            self.activation_level += mult * elapsed
         else:
             self.activation_level = max(0, self.activation_level - 40*elapsed)
 
         if self.is_active():
-            self.active_duration += elapsed
+            self.active_duration += 0 #elapsed
             self.affect = (1000 + (self.active_duration*5), -1000 - (self.active_duration*5), -1000 - (self.active_duration*5))
         else:
             self.active_duration = 0

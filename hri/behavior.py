@@ -60,10 +60,11 @@ class SearchForStimulusBehavior(Behavior):
 
     def update(self, elapsed):
         """ Activates if the absence-of-desired-stimulus-releaser is active """
-        delta = 5 * elapsed
+        delta = 10 * elapsed
         rel = self.behavior_system.robot.perception_system.get_releaser('absence-of-desired-stimulus-releaser')
+        sorrow = self.behavior_system.robot.emotion_system.emotion_sorrow
 
-        if rel.is_active():
+        if rel.is_active() and self.behavior_system.robot.emotion_system.active_emotion == sorrow:
             self.activation_level = self.activation_level + delta
         else:
             self.activation_level = 0
@@ -77,6 +78,8 @@ class RejectStimulusBehavior(Behavior):
         super().__init__(behavior_system)
 
         self.angry_anim = None
+        self.neutral_anim = None
+        self.look_action = None
 
     def activate(self):
         """ Show an upset expression """
@@ -86,6 +89,20 @@ class RejectStimulusBehavior(Behavior):
         # Play the animation
         try:
             self.angry_anim = self.cozmo.play_anim_trigger(cozmosdk.anim.Triggers.DriveStartAngry)
+            self.angry_anim.on_completed(lambda evt, **kwargs: self._angry_anim_completed(evt))
+        except:
+            pass
+
+    def _angry_anim_completed(self, evt):
+        try:
+            self.neutral_anim = self.cozmo.play_anim_trigger(cozmosdk.anim.Triggers.NeutralFace)
+            self.neutral_anim.on_completed(lambda evt, **kwargs: self._neutral_anim_completed(evt))
+        except:
+            pass
+
+    def _neutral_anim_completed(self, evt):
+        try:
+            self.look_action = self.cozmo.set_head_angle(cozmosdk.util.degrees(0))
         except:
             pass
 
@@ -93,12 +110,19 @@ class RejectStimulusBehavior(Behavior):
         if self.angry_anim and self.angry_anim.is_running:
             self.angry_anim.abort()
 
+        if self.neutral_anim and self.neutral_anim.is_running:
+            self.angry_anim.abort()
+
+        if self.look_action and self.look_action.is_running:
+            self.look_action.abort()
+
     def update(self, elapsed):
         """ Activates if the undesired-stimulus-releaser is active """
-        delta = 8 * elapsed
+        delta = 18 * elapsed
         rel = self.behavior_system.robot.perception_system.get_releaser('undesired-stimulus-releaser')
+        sorry = self.behavior_system.robot.emotion_system.emotion_sorrow
 
-        if rel.is_active():
+        if rel.is_active() and self.behavior_system.robot.emotion_system.active_emotion == sorry:
             self.activation_level = self.activation_level + delta
         else:
             self.activation_level = max(0, self.activation_level - delta)
@@ -111,7 +135,7 @@ class EscapeStimulusBehavior(Behavior):
     def __init__(self, behavior_system):
         super().__init__(behavior_system)
 
-        self.scared_action = None
+        self.scared_anim = None
         self.drive_away_action = None
         self.turn_away_action = None
 
@@ -120,8 +144,8 @@ class EscapeStimulusBehavior(Behavior):
         self.cozmo = self.robot.cozmo
 
         try:
-            self.scared_action = self.cozmo.play_anim_trigger(cozmosdk.anim.Triggers.ReactToCliff)
-            self.scared_action.on_completed(lambda evt, **kwargs: self._scared_animation_completed(evt))
+            self.scared_anim = self.cozmo.play_anim_trigger(cozmosdk.anim.Triggers.DriveStartAngry)
+            self.scared_anim.on_completed(lambda evt, **kwargs: self._scared_animation_completed(evt))
         except:
             pass
 
@@ -139,8 +163,8 @@ class EscapeStimulusBehavior(Behavior):
             pass
 
     def deactivate(self):
-        if self.scared_action and self.scared_action.is_running:
-            self.scared_action.abort()
+        if self.scared_anim and self.scared_anim.is_running:
+            self.scared_anim.abort()
 
         if self.drive_away_action and self.drive_away_action.is_running:
             self.drive_away_action.abort()
@@ -150,12 +174,12 @@ class EscapeStimulusBehavior(Behavior):
 
     def update(self, elapsed):
         """ Activates if the threatening-stimulus-releaser is active and the fear emotion is active """
-        delta = 20 * elapsed
+        delta = 35 * elapsed
         rel = self.behavior_system.robot.perception_system.get_releaser('threatening-stimulus-releaser')
         fear = self.behavior_system.robot.emotion_system.emotion_fear
 
-        # TODO: incorporate feare
-        if rel.is_active(): # and self.behavior_system.robot.emotion_system.active_emotion == fear:
+        # TODO: incorporate fear emotion
+        if rel.is_active() and self.behavior_system.robot.emotion_system.active_emotion == fear:
             self.activation_level = self.activation_level + delta
         else:
             self.activation_level = max(0, self.activation_level - delta)
@@ -195,12 +219,13 @@ class PlayWithToyBehavior(Behavior):
             self.roll_block_behavior.stop()
 
     def update(self, elapsed):
-        """ Activates if the desired-stimulus-releaser is active and the solo-drive is active """
-        delta = 8 * elapsed
+        """ Activates if the desired-stimulus-releaser is active and the solo-drive is active and the joy-emotion is active """
+        delta = 10 * elapsed
         rel = self.behavior_system.robot.perception_system.get_releaser('desired-stimulus-releaser')
         solo = self.behavior_system.robot.drive_system.solo_drive
+        joy = self.behavior_system.robot.emotion_system.emotion_joy
 
-        if rel.is_active() and self.behavior_system.robot.drive_system.active_drive == solo:
+        if rel.is_active() and self.behavior_system.robot.drive_system.active_drive == solo and self.behavior_system.robot.emotion_system.active_emotion == joy:
             self.activation_level = self.activation_level + delta
         else:
             self.activation_level = max(0, self.activation_level - delta)
@@ -226,6 +251,9 @@ class EngageWithFaceBehavior(Behavior):
 
     def _start_loop(self):
         # Play the animation
+        if not self.is_active:
+            return
+
         try:
             self.happy_anim = self.cozmo.play_anim_trigger(cozmosdk.anim.Triggers.AcknowledgeFaceNamed)
             self.happy_anim.on_completed(lambda evt, **kwargs: self._happy_anim_completed(evt))
@@ -254,11 +282,12 @@ class EngageWithFaceBehavior(Behavior):
 
     def update(self, elapsed):
         """ Activates if the desired-stimulus-releaser is active and the social-drive is active """
-        delta = 8 * elapsed
+        delta = 10 * elapsed
         rel = self.behavior_system.robot.perception_system.get_releaser('desired-stimulus-releaser')
         social = self.behavior_system.robot.drive_system.social_drive
+        joy = self.behavior_system.robot.emotion_system.emotion_joy
 
-        if rel.is_active() and self.behavior_system.robot.drive_system.active_drive == social:
+        if rel.is_active() and self.behavior_system.robot.drive_system.active_drive == social and self.behavior_system.robot.emotion_system.active_emotion == joy:
             self.activation_level = self.activation_level + delta
         else:
             self.activation_level = max(0, self.activation_level - delta)

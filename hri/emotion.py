@@ -121,7 +121,7 @@ class JoyEmotion(Emotion):
         )
 
     def compute_elicitation_level(self):
-        self.elicitation_level = sum(self.net_affect) / 50
+        self.elicitation_level = sum([abs(v) for v in self.net_affect]) / 30
 
 
 class SorrowEmotion(Emotion):
@@ -150,7 +150,7 @@ class SorrowEmotion(Emotion):
         )
 
     def compute_elicitation_level(self):
-        self.elicitation_level = sum(self.net_affect) / 50
+        self.elicitation_level = sum([abs(v) for v in self.net_affect]) / 50
 
 
 class FearEmotion(Emotion):
@@ -179,7 +179,11 @@ class FearEmotion(Emotion):
         )
 
     def compute_elicitation_level(self):
-        self.elicitation_level = sum(self.net_affect) / 200
+        if not any([rel for rel in self.emotion_system.robot.perception_system.releasers if rel.is_active() and rel.name == 'threatening-stimulus-releaser']):
+            self.net_affect = (None, None, None)
+            self.elicitation_level = 0
+        else:
+            self.elicitation_level = sum([abs(v) for v in self.net_affect]) / 50
 
 
 class EmotionSystem(system.System):
