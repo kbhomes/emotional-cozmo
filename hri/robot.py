@@ -8,12 +8,17 @@ import threading
 import sys
 import logging
 import asyncio
+import time
+import math
 from timeit import default_timer as timeit
 
 class Robot(object):
     """ Robot class composed of all systems representing the robot's state """
 
     def __init__(self, logger):
+        self.timestamp = math.floor(time.time())
+        self.last_image_i = 0
+
         self.logger = logger
         self.last_update = timeit()
 
@@ -60,7 +65,7 @@ class Robot(object):
         if conn:
             self.cozmo = conn.wait_for_robot()
 
-        while not self.update_event.wait(0.05):
+        while not self.update_event.wait(0.03):
             now = timeit()
             elapsed = now - self.last_update
             self.last_update = now
@@ -70,6 +75,11 @@ class Robot(object):
             self.perception_system.update(elapsed)
             self.emotion_system.update(elapsed)
             self.behavior_system.update(elapsed)
+
+            # Save the current image
+            if self.cozmo and self.cozmo.world.latest_image:
+                self.cozmo.world.latest_image.raw_image.save('run_out_images/image{}_{}.jpg'.format(self.timestamp, self.last_image_i))
+                self.last_image_i += 1
 
     def robot_thread(self):
         if self.use_cozmo:

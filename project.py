@@ -4,6 +4,8 @@ import logging
 import threading
 from urwid import *
 
+import cozmo.tkview as tkview
+
 def format_affect(affect):
     if any(affect):
         return '({}, {}, {})'.format(int(affect[0] or 0), int(affect[1] or 0), int(affect[2] or 0))
@@ -83,21 +85,23 @@ class RobotView(logging.StreamHandler):
             ('fixed', 1, AttrWrap(SolidFill(u'\u2502'), 'line')), 
             ('weight', 2, self.emotions_frame),
         ])
-        self.middle_columns = Columns([
+
+        self.bottom_pile = Pile([
             ('weight', 1, self.releasers_frame),
-            ('fixed', 1, AttrWrap(SolidFill(u'\u2502'), 'line')), 
-            ('weight', 1, self.behaviors_frame),
+            ('fixed', 1, AttrWrap(SolidFill(u'\u2500'), 'line')), 
+            ('weight', 1, self.behaviors_frame)
         ])
+
         self.bottom_columns = Columns([
+            ('weight', 1, self.bottom_pile),
+            ('fixed', 1, AttrWrap(SolidFill(u'\u2502'), 'line')), 
             ('weight', 1, self.console_frame),
         ])
 
         self.body = Pile([
             ('weight', 1, self.top_columns),
             ('fixed', 1, AttrWrap(SolidFill(u'\u2500'), 'line')), 
-            ('weight', 2, self.middle_columns),
-            ('fixed', 1, AttrWrap(SolidFill(u'\u2500'), 'line')), 
-            ('weight', 2, self.bottom_columns),
+            ('weight', 4, self.bottom_columns),
         ])
         self.body = AttrMap(self.body, 'bg')
 
@@ -271,8 +275,6 @@ class RobotView(logging.StreamHandler):
         if key in ('q', 'Q'):
             robot.stop()
             raise ExitMainLoop()
-
-print ('main on ' + str(threading.get_ident()))
 
 logger = logging.getLogger('robot')
 logger.setLevel(logging.DEBUG)
